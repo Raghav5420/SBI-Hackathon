@@ -1,0 +1,96 @@
+SBI Hackathon.
+
+project full code in python
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import BaggingClassifier,RandomForestClassifier
+import seaborn as sns
+import random
+from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split,StratifiedKFold
+
+data=pd.read_csv(r'C:\Users\barath\Desktop\college\bank_fraudulant.csv')  // path of the project
+
+data.head()
+
+data.shape
+
+data.isnull().sum()
+
+data.corr()
+
+data.hist(figsize=(20,10))
+
+sns.countplot(data['isFraud'])
+
+data['isFraud'].values.tolist().count(1)
+
+data['isFraud'].values.tolist().count(0)
+
+# Random under sampling
+
+Total_sample=5000
+percent_0=60
+percent_1=40
+data0=data[data['isFraud']==0].sample(n=int((percent_0*Total_sample/100)))
+data1=data[data['isFraud']==1].sample(n=int((percent_1*Total_sample/100)))
+
+
+print(data0.shape)
+data0.head()
+
+print(data1.shape)
+data1.head()
+
+sampled_data=pd.concat([data0,data1],axis=0)
+sampled_data.shape
+
+shuffle_data=shuffle(sampled_data)
+shuffle_data.head(100)
+
+#RANDOM UNDER SAMPLING
+sns.countplot(shuffle_data['isFraud'])
+
+label_encoder=LabelEncoder()
+columns=shuffle_data.columns
+for cols in columns:
+   # print(cols)
+    if(isinstance(shuffle_data[cols].values[0],str)):
+        shuffle_data[cols]=label_encoder.fit_transform(shuffle_data[cols].values)
+
+x=shuffle_data.drop(['isFraud'],axis=1)
+y=shuffle_data['isFraud']
+
+x_train,x_test,y_train,y_test=train_test_split(x,y,stratify=y,test_size=0.3,random_state=42)
+
+
+x_train.shape
+
+y_train.shape
+
+
+y_test.shape
+
+x_train.iloc[0,:]
+
+Nb=GaussianNB()
+Nb.fit(x_train, y_train)
+Nb.score(x_test,y_test)
+
+rf=RandomForestClassifier(n_estimators=200)
+rf.fit(x_train, y_train)
+rf.score(x_test,y_test)
+
+# Bagging
+
+from sklearn import tree
+model = BaggingClassifier(tree.DecisionTreeClassifier(random_state=False))
+model.fit(x_train, y_train)
+model.score(x_test,y_test)
